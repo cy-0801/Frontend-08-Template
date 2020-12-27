@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    #board {
+      display: flex;
+      width: 306px;
+      height: 306px;
+      flex-wrap: wrap;
+    }
+
+    .cell {
+      width: 100px;
+      height: 100px;
+      background: #EEEEEE;
+      border: 1px solid #000000;
+      font-size: 50px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  </style>
+</head>
+
+<body>
+  <div id='board'></div>
+  <script>
+    let color = 1
+    let pattern = [
+      0, 0, 0,
+      0, 0, 0,
+      0, 0, 0,
+    ]
+    show()
+    
+    function show() {
+      let board = document.getElementById('board')
+      board.innerHTML = ''
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          let div = document.createElement('div')
+          div.innerHTML = pattern[i * 3 + j] === 1 ? 'X' : pattern[i * 3 + j] === 2 ? 'O' : ''
+          div.addEventListener('click', () => userMove(i, j))
+          div.classList.add('cell')
+          board.appendChild(div)
+        }
+      }
+    }
+
+    function userMove(i, j) {
+      if (pattern[i * 3 + j]) {
+        return
+      }
+      pattern[i * 3 + j] = color
+      if (check(pattern, color)) {
+        alert(`${color == 1 ? 'X' : 'O'} is winner`)
+        return
+      }
+      color = 3 - color
+      show()
+      computerMove()
+    }
+
+    function computerMove() {
+      let p = bestChioce(pattern, color)
+      if (p.point) {
+        let x = p.point[0]
+        let y = p.point[1]
+        pattern[x * 3 + y] = color
+      }
+      if (check(pattern, color)) {
+        alert(`${color == 1 ? 'X' : 'O'} is winner`)
+        return
+      }
+      color = 3 - color
+      show()
+    }
+
+    function clone(pattern) {
+      return Object.create(pattern)
+    }
+
+    function bestChioce(pattern, color) {
+      let p = willwin(pattern, color)
+      if (p) {
+        return {
+          point: p,
+          result: 1
+        }
+      }
+      let result = -2
+      let point = null
+      outer: for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (pattern[i * 3 + j])
+            continue
+          let tmp = clone(pattern)
+          tmp[i * 3 + j] = color
+          let r = bestChioce(tmp, 3 - color).result
+          if (-r > result) {
+            result = -r
+            point = [i, j]
+          }
+          if (result === 1) {
+            break outer
+          }
+        }
+      }
+      return {
+        point: point,
+        result: point ? result : 0
+      }
+    }
+
+    function willwin(pattern, color) {
+      for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+          if (pattern[i * 3 + j]) continue
+          let tmp = clone(pattern)
+          tmp[i * 3 + j] = color
+          if (check(tmp, color)) {
+            return [i, j]
+          }
+        }
+      }
+      return null
+    }
+
+    function check(pattern, color) {
+      for (let i = 0; i < 3; i++) {
+        let win = true
+        for (let j = 0; j < 3; j++) {
+          if (pattern[i * 3 + j] !== color) {
+            win = false
+          }
+        }
+        if (win) {
+          return win
+        }
+      }
+      for (let i = 0; i < 3; i++) {
+        let win = true
+        for (let j = 0; j < 3; j++) {
+          if (pattern[j * 3 + i] !== color) {
+            win = false
+          }
+        }
+        if (win) {
+          return win
+        }
+      }
+      {
+        let win = true
+        for (let i = 0; i < 3; i++) {
+          if (pattern[i * 3 + i] !== color)
+            win = false
+        }
+        if (win) {
+          return win
+        }
+      }
+      {
+        let win = true
+        for (let i = 0; i < 3; i++) {
+          if (pattern[i * 3 + 2 - i] !== color)
+            win = false
+        }
+        if (win) {
+          return win
+        }
+      }
+      return false
+    }
+
+  </script>
+</body>
+
+</html>
